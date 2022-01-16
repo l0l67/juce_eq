@@ -74,9 +74,7 @@ class EQAudioProcessor  : public juce::AudioProcessor {
 
   private:
     using Filter = juce::dsp::IIR::Filter<float>;
-    
     using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
-
     using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter, Filter>;
     
     MonoChain leftChain, rightChain;
@@ -92,15 +90,12 @@ class EQAudioProcessor  : public juce::AudioProcessor {
     using Coefficients = Filter::CoefficientsPtr;
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
-
     template<int Index, typename ChainType, typename CoefficientType>
     void update(ChainType& chain, const CoefficientType& coefficents) {
 
       updateCoefficients(chain.template get<Index>().coefficients, coefficents[Index]);
       chain.template setBypassed<Index>(false);
     }
-
-
 
     template<typename ChainType, typename CoefficientType>
     void updateCutFilter(ChainType& leftLowCut, const CoefficientType& cutCoefficents, const Slope& lowCutSlope) {
@@ -131,9 +126,7 @@ class EQAudioProcessor  : public juce::AudioProcessor {
 
     void updateLowCutFilters(const ChainSettings& chainSettings);
     void updateHighCutFilters(const ChainSettings& chainSettings);
-
     void updateFilters();
-
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQAudioProcessor)
