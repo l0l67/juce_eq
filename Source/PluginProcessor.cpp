@@ -159,33 +159,74 @@ void EQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 }
 
 //==============================================================================
-bool EQAudioProcessor::hasEditor() const
-{
-    return true; // (change this to false if you choose to not supply an editor)
+bool EQAudioProcessor::hasEditor() const {
+  return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* EQAudioProcessor::createEditor()
-{
-    return new EQAudioProcessorEditor (*this);
+juce::AudioProcessorEditor* EQAudioProcessor::createEditor() {
+  //return new EQAudioProcessorEditor (*this);
+
+  return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void EQAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
-{
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+void EQAudioProcessor::getStateInformation (juce::MemoryBlock& destData) {
+  // You should use this method to store your parameters in the memory block.
+  // You could do that either as raw data, or use the XML or ValueTree classes
+  // as intermediaries to make it easy to save and load complex data.
 }
 
-void EQAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
-{
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+void EQAudioProcessor::setStateInformation (const void* data, int sizeInBytes) {
+  // You should use this method to restore your parameters from this memory block,
+  // whose contents will have been created by the getStateInformation() call.
 }
+
+juce::AudioProcessorValueTreeState::ParameterLayout
+  EQAudioProcessor::createParameterLayout() {
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("LowCut Freq",
+                                                          "LowCut Freq",
+                                                          juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                          20.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("HighCut Freq",
+                                                          "HighCut Freq",
+                                                          juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                          20000.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Freq",
+                                                          "Peak Freq",
+                                                          juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                          750.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Gain",
+                                                          "Peak Gain",
+                                                          juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f), 
+                                                          0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Quality",
+                                                          "Peak Quality",
+                                                          juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f), 
+                                                          1.f));
+
+    juce::StringArray stringArray;
+    for (int i = 0; i < 4; ++i) {                                                                                       //<----------------
+      juce::String str;
+      str << (12 + i*12);
+      str << " db/Oct";
+      stringArray.add(str);
+    }
+
+    layout.add(std::make_unique<juce::AudioParameterChoice>("LowCut Slope", "LowCut Slope", stringArray, 0));
+
+    layout.add(std::make_unique<juce::AudioParameterChoice>("HighCut Slope", "HighCut Slope", stringArray, 0));
+
+    return layout;
+  }
 
 //==============================================================================
 // This creates new instances of the plugin..
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
-    return new EQAudioProcessor();
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
+  return new EQAudioProcessor();
 }
