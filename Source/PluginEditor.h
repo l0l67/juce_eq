@@ -22,9 +22,8 @@ struct CustomRotarySlider : juce::Slider {
 //==============================================================================
 /**
 */
-class EQAudioProcessorEditor  : public juce::AudioProcessorEditor
-{
-public:
+class EQAudioProcessorEditor  : public juce::AudioProcessorEditor {
+  public:
     EQAudioProcessorEditor (EQAudioProcessor&);
     ~EQAudioProcessorEditor() override;
 
@@ -32,20 +31,34 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-private:
+  private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     EQAudioProcessor& audioProcessor;
 
     CustomRotarySlider peakFreqSlider, 
-                       peakGainSlider, 
-                       peakQualitySlider, 
-                       lowCutFreqSlider,
-                       highCutFreqSlider,
-                       lowCutSlopeSlider,
-                       highCutSlopeSlider;
+                        peakGainSlider, 
+                        peakQualitySlider, 
+                        lowCutFreqSlider,
+                        highCutFreqSlider,
+                        lowCutSlopeSlider,
+                        highCutSlopeSlider;
+
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+
+    Attachment peakFreqSliderAttachment, 
+               peakGainSliderAttachment, 
+               peakQualitySliderAttachment, 
+               lowCutFreqSliderAttachment,
+               highCutFreqSliderAttachment,
+               lowCutSlopeSliderAttachment,
+               highCutSlopeSliderAttachment;
+
 
     std::vector<juce::Component*> getComps();
+
+    MonoChain monoChain;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQAudioProcessorEditor)
 };
