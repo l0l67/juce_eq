@@ -104,6 +104,15 @@ void EQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock) {
   leftChain.prepare(spec);
   rightChain.prepare(spec);
 
+  auto chainSettings = getChainSettings(apvts);
+
+  auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 
+                                                                              chainSettings.peakFreq, 
+                                                                              chainSettings.peakQuality, 
+                                                                              juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+  
+  *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+  *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
 }
 
 void EQAudioProcessor::releaseResources()
@@ -149,8 +158,20 @@ void EQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
   // This is here to avoid people getting screaming feedback
   // when they first compile a plugin, but obviously you don't need to keep
   // this code if your algorithm always overwrites all the output channels.
-  for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-      buffer.clear (i, 0, buffer.getNumSamples());
+  for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
+    buffer.clear (i, 0, buffer.getNumSamples());
+  }
+
+  auto chainSettings = getChainSettings(apvts);
+
+  auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), 
+                                                                              chainSettings.peakFreq, 
+                                                                              chainSettings.peakQuality, 
+                                                                              juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+  
+  *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+  *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+
 
   juce::dsp::AudioBlock<float> block(buffer);
 
@@ -187,6 +208,21 @@ void EQAudioProcessor::setStateInformation (const void* data, int sizeInBytes) {
   // You should use this method to restore your parameters from this memory block,
   // whose contents will have been created by the getStateInformation() call.
 }
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts) {
+  ChainSettings settings;
+
+  settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq")->load();
+  settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq")->load();
+  settings.peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
+  settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain")->load();
+  settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
+  settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope")->load();
+  settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope")->load();
+
+  return settings;
+}
+
 
 juce::AudioProcessorValueTreeState::ParameterLayout
   EQAudioProcessor::createParameterLayout() {
